@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestCollectURL(t *testing.T) {
@@ -17,15 +18,15 @@ func TestCollectURL(t *testing.T) {
 	defer server.Close()
 
 	// Only HEAD and GET are supported.
-	_, _, errDelete := CollectURL(server.URL, 1, http.MethodDelete)
+	_, _, errDelete := CollectURL(server.URL, 1*time.Second, http.MethodDelete)
 	if errDelete == nil {
 		t.Errorf("CollectURL expected to return error on invalid method, but no error returned.")
 		return
 	}
 
-	value, response, err := CollectURL(server.URL, 1, http.MethodGet)
+	value, response, err := CollectURL(server.URL, 1*time.Second, http.MethodGet)
 	if err != nil {
-		t.Errorf("CollectURL returned non-nil error: %v", errDelete)
+		t.Errorf("CollectURL returned non-nil error: %v", err)
 		return
 	}
 	if string(value) != returnString {
@@ -47,7 +48,7 @@ func TestCollectURLs(t *testing.T) {
 	defer server.Close()
 
 	urls := []string{server.URL, server.URL}
-	ucds := CollectURLs(urls, 1, http.MethodGet, 2)
+	ucds := CollectURLs(urls, 1*time.Second, http.MethodGet, 2)
 	if len(ucds) != len(urls) {
 		t.Errorf("Incorrect number of URLCollectionData items returned, expected %d, got %d", len(ucds), len(urls))
 		return

@@ -28,7 +28,7 @@ const (
 
 // CollectURL - Pass in a URL, request timeout, HTTP method to use, and get back
 // the body of the request. HTTP method MUST be one of: [MethodGet, MethodHead]
-func CollectURL(urlIn string, timeout int, method string) ([]byte, *http.Response, error) {
+func CollectURL(urlIn string, timeout time.Duration, method string) ([]byte, *http.Response, error) {
 	var req *http.Request
 	u, err := url.Parse(urlIn)
 	if err != nil {
@@ -58,10 +58,10 @@ func CollectURL(urlIn string, timeout int, method string) ([]byte, *http.Respons
 	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		Dial: (&net.Dialer{
 			// This timeout is require in order to prevent "too many open file" errors.
-			Timeout:   time.Duration(timeout) * time.Second,
-			KeepAlive: time.Duration(timeout) * time.Second,
+			Timeout:   timeout,
+			KeepAlive: timeout,
 		}).Dial}
-	client := http.Client{Timeout: time.Duration(timeout) * time.Second, Transport: tr}
+	client := http.Client{Timeout: timeout, Transport: tr}
 	resp, err := client.Do(req)
 	if err != nil {
 		// Warning level, as the IP/host may be invalid, host down, etc.
@@ -78,7 +78,7 @@ func CollectURL(urlIn string, timeout int, method string) ([]byte, *http.Respons
 // CollectURLs - Pass in a slice of URLs, request timeout, HTTP method to use, and
 // get back a slice of URLCollectionData with results.
 // The URLs are processed in parallel using threads number of parallel requests.
-func CollectURLs(urls []string, timeout int, method string, threads int) []URLCollectionData {
+func CollectURLs(urls []string, timeout time.Duration, method string, threads int) []URLCollectionData {
 	// Channel to feed work to the go routines
 	tasks := make(chan string, threads)
 	// Channel to return data from the workers.
